@@ -32,7 +32,7 @@
                 </li>
 
                 {{-- Penjualan --}}
-                @if($user->hasPermission('read', 'penjualan'))
+                @if($user->hasPermission('detail', 'penjualan'))
                     <li class="nxl-item nxl-hasmenu {{ Request::is('penjualan*') ? 'active' : '' }}">
                         <a href="javascript:void(0);" class="nxl-link">
                             <span class="nxl-micon"><i class="feather-shopping-cart"></i></span>
@@ -43,7 +43,7 @@
                             @if($user->hasPermission('detail', 'penjualan'))
                                 <li class="nxl-item"><a class="nxl-link" href="{{ route('penjualan.index') }}">Daftar Penjualan</a></li>
                             @endif
-                            @if($user->hasPermission('create', 'penjualan'))
+                            @if($user->hasPermission('add', 'penjualan'))
                                 <li class="nxl-item"><a class="nxl-link" href="{{ route('penjualan.create') }}">Transaksi Penjualan</a></li>
                             @endif
                             @if($user->hasPermission('detail', 'penjualan'))
@@ -65,7 +65,7 @@
                             @if($user->hasPermission('detail', 'pembelian'))
                                 <li class="nxl-item"><a class="nxl-link" href="{{ route('pembelian.index') }}">Daftar Pembelian</a></li>
                             @endif
-                            @if($user->hasPermission('create', 'pembelian'))
+                            @if($user->hasPermission('add', 'pembelian'))
                                 <li class="nxl-item"><a class="nxl-link" href="{{ route('pembelian.create') }}">Transaksi Pembelian</a></li>
                             @endif
                             @if($user->hasPermission('detail', 'pembelian'))
@@ -86,9 +86,6 @@
                         <ul class="nxl-submenu">
                             @if($user->hasPermission('detail', 'obat'))
                                 <li class="nxl-item"><a class="nxl-link" href="{{ route('obat.index') }}">Daftar Obat</a></li>
-                            @endif
-                            @if($user->hasPermission('create', 'obat'))
-                                <li class="nxl-item"><a class="nxl-link" href="{{ route('obat.create') }}">Tambah Obat</a></li>
                             @endif
                             @if($user->hasPermission('detail', 'obat'))
                                 <li class="nxl-item"><a class="nxl-link" href="{{ route('obat.stok') }}">Stok Obat</a></li>

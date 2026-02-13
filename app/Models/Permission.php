@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\RolePermission;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,16 +11,50 @@ class Permission extends Model
 
     protected $fillable = [
         'feature',
-        'action'
+        'action',
     ];
 
+    // ==================== RELASI ====================
+
+    /**
+     * Relasi ke Role (Many to Many)
+     * Satu permission bisa dimiliki banyak role
+     */
     public function roles()
     {
-        return $this->belongsToMany(Role::class, 'role_permission', 'permission_id', 'role_id');
+        return $this->belongsToMany(
+            Role::class,
+            'role_permission',
+            'permission_id',
+            'role_id'
+        )->withTimestamps();
     }
 
-    public function rolePermissions()
+    // ==================== SCOPES ====================
+
+    /**
+     * Scope untuk filter berdasarkan feature
+     */
+    public function scopeByFeature($query, string $feature)
     {
-        return $this->hasMany(RolePermission::class);
+        return $query->where('feature', $feature);
+    }
+
+    /**
+     * Scope untuk filter berdasarkan action
+     */
+    public function scopeByAction($query, string $action)
+    {
+        return $query->where('action', $action);
+    }
+
+    // ==================== HELPER METHODS ====================
+
+    /**
+     * Get permission dalam format "feature.action"
+     */
+    public function getFullNameAttribute()
+    {
+        return "{$this->feature}.{$this->action}";
     }
 }

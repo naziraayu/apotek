@@ -96,8 +96,7 @@ Route::middleware(['auth'])->group(function () {
     // --------------------
     Route::prefix('obat')->name('obat.')->group(function () {
         // Hapus semua
-        Route::delete('/destroy-all', [ObatController::class, 'destroyAll'])
-            ->middleware('permission:delete,obat')->name('destroyAll');
+        Route::delete('/destroy-all', [ObatController::class, 'destroyAll'])->name('destroyAll');
 
         // AJAX Routes
         Route::get('/get-kategori', [ObatController::class, 'getKategori'])->name('getKategori');
@@ -106,28 +105,18 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/data', [ObatController::class, 'data'])->name('data');
 
         // Stok & Kadaluarsa
-        Route::get('/stok', [ObatController::class, 'stok'])
-            ->middleware('permission:detail,obat')->name('stok');
-        Route::get('/kadaluarsa', [ObatController::class, 'kadaluarsa'])
-            ->middleware('permission:detail,obat')->name('kadaluarsa');
-        Route::get('/stok-minim', [ObatController::class, 'stokMinim'])
-            ->middleware('permission:detail,obat')->name('stokMinim');
+        Route::get('/stok', [ObatController::class, 'stok'])->name('stok');
+        Route::get('/kadaluarsa', [ObatController::class, 'kadaluarsa'])->name('kadaluarsa');
+        Route::get('/stok-minim', [ObatController::class, 'stokMinim'])->name('stokMinim');
 
         // CRUD Routes
-        Route::get('/', [ObatController::class, 'index'])
-            ->middleware('permission:detail,obat')->name('index');
-        Route::get('/create', [ObatController::class, 'create'])
-            ->middleware('permission:create,obat')->name('create');
-        Route::post('/', [ObatController::class, 'store'])
-            ->middleware('permission:create,obat')->name('store');
-        Route::get('/{id}', [ObatController::class, 'show'])
-            ->middleware('permission:detail,obat')->name('show');
-        Route::get('/{id}/edit', [ObatController::class, 'edit'])
-            ->middleware('permission:update,obat')->name('edit');
-        Route::put('/{id}', [ObatController::class, 'update'])
-            ->middleware('permission:update,obat')->name('update');
-        Route::delete('/{id}', [ObatController::class, 'destroy'])
-            ->middleware('permission:delete,obat')->name('destroy');
+        Route::get('/', [ObatController::class, 'index'])->name('index');
+        Route::get('/create', [ObatController::class, 'create'])->name('create');
+        Route::post('/', [ObatController::class, 'store'])->name('store');
+        Route::get('/{id}', [ObatController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [ObatController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [ObatController::class, 'update'])->name('update');
+        Route::delete('/{id}', [ObatController::class, 'destroy'])->name('destroy');
     });
 
     // --------------------
@@ -146,7 +135,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [KategoriObatController::class, 'index'])
             ->middleware('permission:detail,kategori_obat')->name('index');
         Route::get('/create', [KategoriObatController::class, 'create'])
-            ->middleware('permission:create,kategori_obat')->name('create');
+            ->middleware('permission:add,kategori_obat')->name('create');
         Route::post('/', [KategoriObatController::class, 'store'])
             ->middleware('permission:create,kategori_obat')->name('store');
         Route::get('/{id}', [KategoriObatController::class, 'show'])
