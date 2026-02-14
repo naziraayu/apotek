@@ -272,6 +272,8 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('permission:update,user')->name('update');
         Route::delete('/{user}', [UserController::class, 'destroy'])
             ->middleware('permission:delete,user')->name('destroy');
+        Route::delete('/destroy-all', [UserController::class, 'destroyAll'])
+            ->middleware('permission:delete,user')->name('destroyAll');
     });
 
     // --------------------
@@ -292,18 +294,21 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('permission:update,hak_akses')->name('update');
         Route::delete('/{role}', [RoleController::class, 'destroy'])
             ->middleware('permission:delete,hak_akses')->name('destroy');
+        Route::delete('/destroy-all', [RoleController::class, 'destroyAll'])
+            ->middleware('permission:delete,hak_akses')->name('destroyAll');
+        Route::get('/{role}/clone', [RoleController::class, 'clone'])
+            ->middleware('permission:create,hak_akses')->name('clone');
     });
 
     // --------------------
     // Profile Routes
     // --------------------
     Route::prefix('profile')->name('profile.')->group(function () {
-        Route::get('/', [ProfileController::class, 'edit'])
-            ->middleware('permission:detail,profile')->name('edit');
-        Route::patch('/', [ProfileController::class, 'update'])
-            ->middleware('permission:update,profile')->name('update');
-        Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
-        Route::put('/photo', [ProfileController::class, 'updatePhoto'])->name('update.photo');
+        Route::get('/show', [ProfileController::class, 'show'])->name('show');           // /profile (VIEW)
+        Route::get('/edit', [ProfileController::class, 'edit'])->name('edit');       // /profile/edit (EDIT)
+        Route::patch('/', [ProfileController::class, 'update'])->name('update');     // /profile (UPDATE)
+        Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');  // /profile (DELETE)
+        Route::put('/photo', [ProfileController::class, 'updatePhoto'])->name('update.photo'); // /profile/photo (UPLOAD PHOTO)
     });
 });
 // Route::get('/dashboard', function () {

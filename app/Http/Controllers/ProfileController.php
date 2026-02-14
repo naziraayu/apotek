@@ -7,12 +7,23 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
     /**
-     * Display the user's profile form.
+     * Display the user's profile details.
+     */
+    public function show(Request $request): View
+    {
+        return view('profile.show', [
+            'user' => $request->user(),
+        ]);
+    }
+
+    /**
+     * Display the user's profile form (for editing).
      */
     public function edit(Request $request): View
     {
@@ -35,6 +46,32 @@ class ProfileController extends Controller
         $request->user()->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
+    }
+
+    /**
+     * Update the user's profile photo.
+     */
+    public function updatePhoto(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'photo' => ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+        ]);
+
+        $user = $request->user();
+
+        // Delete old photo if exists
+        if ($user->photo) {
+            Storage::disk('public')->delete($user->photo);
+        }
+
+        // Store new photo
+        $photoPath = $request->file('photo')->store('profile-photos', 'public');
+
+        $user->update([
+            'photo' => $photoPath,
+        ]);
+
+        return Redirect::route('profile.edit')->with('status', 'photo-updated');
     }
 
     /**

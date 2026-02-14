@@ -107,25 +107,38 @@
                     </div>
                     
                     <div class="dropdown nxl-h-item">
-                        <a href="javascript:void(0);" data-bs-toggle="dropdown" role="button" data-bs-auto-close="outside">
-                            <img src="assets/images/avatar/1.png" alt="user-image" class="img-fluid user-avtar me-0" />
+                        <a href="javascript:void(0);" class="nxl-head-link me-0" data-bs-toggle="dropdown" role="button" data-bs-auto-close="outside">
+                            <div class="d-flex align-items-center">
+                                <div class="text-end me-2">
+                                    <span class="d-block fw-semibold text-dark">{{ Auth::user()->name }}</span>
+                                    @if(Auth::user()->role)
+                                        <span class="d-block fs-11 text-muted">{{ Auth::user()->role->nama_role }}</span>
+                                    @endif
+                                </div>
+                                <i class="feather-chevron-down"></i>
+                            </div>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end nxl-h-dropdown nxl-user-dropdown">
                             <div class="dropdown-header">
                                 <div class="d-flex align-items-center">
-                                    {{-- <img src="assets/images/avatar/1.png" alt="user-image" class="img-fluid user-avtar" /> --}}
                                     <div>
-                                        <h6 class="text-dark mb-0">Alexandra Della <span class="badge bg-soft-success text-success ms-1">PRO</span></h6>
-                                        <span class="fs-12 fw-medium text-muted">alex@example.com</span>
+                                        <h6 class="text-dark mb-0">
+                                            {{ Auth::user()->name }}
+                                            @if(Auth::user()->role)
+                                                <span class="badge bg-soft-success text-success ms-1">{{ Auth::user()->role->nama_role }}</span>
+                                            @endif
+                                        </h6>
+                                        <span class="fs-12 fw-medium text-muted">{{ Auth::user()->email }}</span>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <a href="javascript:void(0);" class="dropdown-item">
+                            {{-- ✅ UPDATED: Profile Details mengarah ke route profile.show --}}
+                            <a href="{{ route('profile.show') }}" class="dropdown-item">
                                 <i class="feather-user"></i>
                                 <span>Profile Details</span>
                             </a>
-                            <a href="javascript:void(0);" class="dropdown-item">
+                            {{-- ✅ Account Settings tetap ke route profile.edit --}}
+                            <a href="{{ route('profile.edit') }}" class="dropdown-item">
                                 <i class="feather-settings"></i>
                                 <span>Account Settings</span>
                             </a>
