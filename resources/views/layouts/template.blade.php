@@ -113,7 +113,7 @@
                         <div class="dropdown-menu dropdown-menu-end nxl-h-dropdown nxl-user-dropdown">
                             <div class="dropdown-header">
                                 <div class="d-flex align-items-center">
-                                    <img src="assets/images/avatar/1.png" alt="user-image" class="img-fluid user-avtar" />
+                                    {{-- <img src="assets/images/avatar/1.png" alt="user-image" class="img-fluid user-avtar" /> --}}
                                     <div>
                                         <h6 class="text-dark mb-0">Alexandra Della <span class="badge bg-soft-success text-success ms-1">PRO</span></h6>
                                         <span class="fs-12 fw-medium text-muted">alex@example.com</span>
@@ -130,9 +130,11 @@
                                 <span>Account Settings</span>
                             </a>
                             <div class="dropdown-divider"></div>
-                            <a href="./auth-login-minimal.html" class="dropdown-item">
-                                <i class="feather-log-out"></i>
-                                <span>Logout</span>
+                            <form id="logout-form" method="POST" action="{{ route('logout') }}" style="display: none;">
+                                @csrf
+                            </form>
+                            <a href="#" class="dropdown-item" onclick="event.preventDefault(); if(confirm('Apakah Anda yakin ingin keluar?')) document.getElementById('logout-form').submit();">
+                                <i class="feather-log-out me-2"></i>Logout
                             </a>
                         </div>
                     </div>

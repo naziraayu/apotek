@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             KategoriObatSeeder::class,
             ObatSeeder::class,
+            PelangganSeeder::class, 
+            SupplierSeeder::class, 
         ]);
     }
 }
