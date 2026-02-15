@@ -14,7 +14,7 @@ class ShopController extends Controller
     public function index(Request $request)
     {
         $query = Obat::with('kategori')
-            ->tersedia() // Hanya obat yang tersedia
+            ->tersedia() // Hanya obat yang stok > 0
             ->tidakKadaluarsa(); // Tidak kadaluarsa
 
         // Filter kategori
@@ -27,8 +27,30 @@ class ShopController extends Controller
             $query->search($request->search);
         }
 
-        $obats = $query->latest()->paginate(12);
-        $kategoris = KategoriObat::has('obat')->get();
+        // Sort
+        if ($request->filled('sort')) {
+            switch ($request->sort) {
+                case 'name_asc':
+                    $query->orderBy('nama_obat', 'asc');
+                    break;
+                case 'name_desc':
+                    $query->orderBy('nama_obat', 'desc');
+                    break;
+                case 'price_asc':
+                    $query->orderBy('harga_jual', 'asc');
+                    break;
+                case 'price_desc':
+                    $query->orderBy('harga_jual', 'desc');
+                    break;
+                default:
+                    $query->latest();
+            }
+        } else {
+            $query->latest();
+        }
+
+        $obats = $query->paginate(12)->appends($request->all());
+        $kategoris = KategoriObat::has('obat')->orderBy('nama_kategori')->get();
 
         return view('shop.index', compact('obats', 'kategoris'));
     }
@@ -40,8 +62,24 @@ class ShopController extends Controller
     {
         $obat = Obat::with('kategori')
             ->where('stok', '>', 0)
+            ->whereNotNull('harga_jual')
             ->findOrFail($id);
 
-        return view('shop.show', compact('obat'));
+        // Cek apakah kadaluarsa
+        if ($obat->isExpired()) {
+            return redirect()->route('shop.index')
+                ->with('error', 'Obat ini sudah kadaluarsa dan tidak tersedia untuk dibeli');
+        }
+
+        // Obat terkait (dari kategori yang sama)
+        $relatedObats = Obat::with('kategori')
+            ->where('kategori_id', $obat->kategori_id)
+            ->where('id', '!=', $id)
+            ->tersedia()
+            ->tidakKadaluarsa()
+            ->limit(4)
+            ->get();
+
+        return view('shop.show', compact('obat', 'relatedObats'));
     }
 }

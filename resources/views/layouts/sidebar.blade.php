@@ -128,7 +128,7 @@
                 @endif
 
                 {{-- Laporan --}}
-                @if($user->features()->intersect(['penjualan','pembelian','obat'])->isNotEmpty())
+                {{-- @if($user->features()->intersect(['penjualan','pembelian','obat'])->isNotEmpty())
                     <li class="nxl-item nxl-caption">
                         <label>Laporan</label>
                     </li>
@@ -154,7 +154,7 @@
                             <li class="nxl-item"><a class="nxl-link" href="{{ route('laporan.keuangan') }}">Laporan Keuangan</a></li>
                         </ul>
                     </li>
-                @endif
+                @endif --}}
 
                 {{-- Pengaturan --}}
                 @if($user->features()->intersect(['hak_akses','user','profile'])->isNotEmpty())

@@ -35,19 +35,25 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/obat/{id}', [ShopController::class, 'show'])->name('show');
         
         // Keranjang Belanja
-        Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-        Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
-        Route::put('/cart/{id}', [CartController::class, 'update'])->name('cart.update');
-        Route::delete('/cart/{id}', [CartController::class, 'remove'])->name('cart.remove');
-        Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
+        Route::prefix('cart')->name('cart.')->group(function () {
+            Route::get('/', [CartController::class, 'index'])->name('index');
+            Route::post('/add', [CartController::class, 'add'])->name('add');
+            Route::put('/{id}', [CartController::class, 'update'])->name('update');
+            Route::delete('/{id}', [CartController::class, 'remove'])->name('remove');
+            Route::delete('/', [CartController::class, 'clear'])->name('clear');
+        });
         
         // Checkout & Order
         Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout');
         Route::post('/order', [OrderController::class, 'store'])->name('order.store');
         
         // Riwayat Pesanan Pelanggan
-        Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-        Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
+        Route::prefix('orders')->name('orders.')->group(function () {
+            Route::get('/', [OrderController::class, 'index'])->name('index');
+            Route::get('/{id}', [OrderController::class, 'show'])->name('show');
+            Route::post('/{id}/cancel', [OrderController::class, 'cancel'])->name('cancel'); // Cancel pesanan
+            Route::post('/{id}/reupload', [OrderController::class, 'reupload'])->name('reupload'); // Re-upload bukti
+        });
     });
 
     // ========================================

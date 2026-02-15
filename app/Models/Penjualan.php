@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class Penjualan extends Model
 {
@@ -21,6 +23,8 @@ class Penjualan extends Model
         'grand_total',
         'status_pembayaran',
         'metode_pembayaran',
+        'bukti_pembayaran', // TAMBAHAN
+        'catatan', // TAMBAHAN
     ];
 
     protected $casts = [
@@ -32,29 +36,16 @@ class Penjualan extends Model
 
     // ==================== RELASI ====================
 
-    /**
-     * Relasi ke Pelanggan (Many to One)
-     * Banyak penjualan dari satu pelanggan
-     * Nullable karena bisa juga tanpa pelanggan (walk-in)
-     */
     public function pelanggan()
     {
         return $this->belongsTo(Pelanggan::class, 'pelanggan_id');
     }
 
-    /**
-     * Relasi ke User/Kasir (Many to One)
-     * Banyak penjualan dilakukan oleh satu kasir
-     */
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    /**
-     * Relasi ke DetailPenjualan (One to Many)
-     * Satu penjualan punya banyak detail
-     */
     public function details()
     {
         return $this->hasMany(DetailPenjualan::class, 'penjualan_id');
@@ -62,46 +53,52 @@ class Penjualan extends Model
 
     // ==================== ACCESSOR ====================
 
-    /**
-     * Get total harga format
-     */
     public function getTotalHargaFormatAttribute()
     {
         return 'Rp ' . number_format($this->total_harga, 0, ',', '.');
     }
 
-    /**
-     * Get diskon format
-     */
     public function getDiskonFormatAttribute()
     {
         return 'Rp ' . number_format($this->diskon, 0, ',', '.');
     }
 
-    /**
-     * Get grand total format
-     */
     public function getGrandTotalFormatAttribute()
     {
         return 'Rp ' . number_format($this->grand_total, 0, ',', '.');
     }
 
     /**
-     * Get status pembayaran badge
+     * Get URL bukti pembayaran
      */
+    public function getBuktiPembayaranUrlAttribute()
+    {
+        if (!$this->bukti_pembayaran) {
+            return null;
+        }
+        return Storage::url($this->bukti_pembayaran);
+    }
+
+    /**
+     * Check apakah bukti pembayaran ada
+     */
+    public function hasBuktiPembayaran()
+    {
+        return !empty($this->bukti_pembayaran) && Storage::disk('public')->exists($this->bukti_pembayaran);
+    }
+
     public function getStatusPembayaranBadgeAttribute()
     {
         $badges = [
             'lunas' => '<span class="badge bg-success">Lunas</span>',
+            'pending' => '<span class="badge bg-warning text-dark">Menunggu Verifikasi</span>',
             'belum_lunas' => '<span class="badge bg-danger">Belum Lunas</span>',
+            'batal' => '<span class="badge bg-secondary">Dibatalkan</span>',
         ];
 
         return $badges[$this->status_pembayaran] ?? '<span class="badge bg-secondary">Unknown</span>';
     }
 
-    /**
-     * Get metode pembayaran badge
-     */
     public function getMetodePembayaranBadgeAttribute()
     {
         $badges = [
@@ -114,33 +111,21 @@ class Penjualan extends Model
         return $badges[$this->metode_pembayaran] ?? '<span class="badge bg-secondary">Unknown</span>';
     }
 
-    /**
-     * Get nama pelanggan atau "Umum"
-     */
     public function getPelangganNamaAttribute()
     {
         return $this->pelanggan?->nama_pelanggan ?? 'Umum';
     }
 
-    /**
-     * Get nama kasir
-     */
     public function getKasirNamaAttribute()
     {
         return $this->user?->name ?? '-';
     }
 
-    /**
-     * Get total item
-     */
     public function getTotalItemAttribute()
     {
         return $this->details()->sum('jumlah');
     }
 
-    /**
-     * Get total profit
-     */
     public function getTotalProfitAttribute()
     {
         $profit = 0;
@@ -152,9 +137,6 @@ class Penjualan extends Model
         return $profit;
     }
 
-    /**
-     * Get total profit format
-     */
     public function getTotalProfitFormatAttribute()
     {
         return 'Rp ' . number_format($this->total_profit, 0, ',', '.');
@@ -162,9 +144,6 @@ class Penjualan extends Model
 
     // ==================== HELPER METHODS ====================
 
-    /**
-     * Hitung total harga dari detail
-     */
     public function hitungTotal()
     {
         $this->total_harga = $this->details()->sum('subtotal');
@@ -175,8 +154,61 @@ class Penjualan extends Model
     }
 
     /**
-     * Tandai sebagai lunas
+     * Approve pembayaran (untuk apoteker)
+     * - Set status jadi lunas
+     * - Kurangi stok obat
      */
+    public function approve()
+    {
+        if ($this->status_pembayaran !== 'pending') {
+            throw new \Exception('Hanya pesanan pending yang bisa diapprove');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Validasi stok
+            foreach ($this->details as $detail) {
+                if ($detail->obat->stok < $detail->jumlah) {
+                    throw new \Exception("Stok {$detail->obat->nama_obat} tidak mencukupi");
+                }
+            }
+
+            // Kurangi stok
+            foreach ($this->details as $detail) {
+                $detail->obat->kurangiStok($detail->jumlah);
+            }
+
+            // Update status
+            $this->update([
+                'status_pembayaran' => 'lunas',
+            ]);
+
+            DB::commit();
+            return true;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Reject pembayaran (untuk apoteker)
+     */
+    public function reject($alasan = null)
+    {
+        if ($this->status_pembayaran !== 'pending') {
+            throw new \Exception('Hanya pesanan pending yang bisa direject');
+        }
+
+        $this->update([
+            'status_pembayaran' => 'batal',
+            'catatan' => $alasan ? "Ditolak: {$alasan}" : 'Ditolak oleh apoteker',
+        ]);
+
+        return true;
+    }
+
     public function bayar()
     {
         $this->status_pembayaran = 'lunas';
@@ -185,17 +217,21 @@ class Penjualan extends Model
         return $this;
     }
 
-    /**
-     * Check apakah sudah lunas
-     */
     public function isLunas()
     {
         return $this->status_pembayaran === 'lunas';
     }
 
-    /**
-     * Get persentase diskon
-     */
+    public function isPending()
+    {
+        return $this->status_pembayaran === 'pending';
+    }
+
+    public function isBatal()
+    {
+        return $this->status_pembayaran === 'batal';
+    }
+
     public function getPersentaseDiskonAttribute()
     {
         if ($this->total_harga == 0) return 0;
@@ -204,49 +240,41 @@ class Penjualan extends Model
 
     // ==================== SCOPES ====================
 
-    /**
-     * Scope untuk penjualan lunas
-     */
     public function scopeLunas($query)
     {
         return $query->where('status_pembayaran', 'lunas');
     }
 
-    /**
-     * Scope untuk penjualan belum lunas
-     */
+    public function scopePending($query)
+    {
+        return $query->where('status_pembayaran', 'pending');
+    }
+
     public function scopeBelumLunas($query)
     {
         return $query->where('status_pembayaran', 'belum_lunas');
     }
 
-    /**
-     * Scope untuk filter berdasarkan pelanggan
-     */
+    public function scopeBatal($query)
+    {
+        return $query->where('status_pembayaran', 'batal');
+    }
+
     public function scopeByPelanggan($query, $pelangganId)
     {
         return $query->where('pelanggan_id', $pelangganId);
     }
 
-    /**
-     * Scope untuk penjualan walk-in (tanpa pelanggan)
-     */
     public function scopeWalkIn($query)
     {
         return $query->whereNull('pelanggan_id');
     }
 
-    /**
-     * Scope untuk filter berdasarkan metode pembayaran
-     */
     public function scopeByMetode($query, $metode)
     {
         return $query->where('metode_pembayaran', $metode);
     }
 
-    /**
-     * Scope untuk filter berdasarkan tanggal
-     */
     public function scopeByDate($query, $start, $end = null)
     {
         if ($end) {
@@ -255,26 +283,17 @@ class Penjualan extends Model
         return $query->whereDate('tanggal_penjualan', $start);
     }
 
-    /**
-     * Scope untuk hari ini
-     */
     public function scopeToday($query)
     {
         return $query->whereDate('tanggal_penjualan', today());
     }
 
-    /**
-     * Scope untuk bulan ini
-     */
     public function scopeBulanIni($query)
     {
         return $query->whereMonth('tanggal_penjualan', now()->month)
                      ->whereYear('tanggal_penjualan', now()->year);
     }
 
-    /**
-     * Scope untuk tahun ini
-     */
     public function scopeTahunIni($query)
     {
         return $query->whereYear('tanggal_penjualan', now()->year);
@@ -282,9 +301,6 @@ class Penjualan extends Model
 
     // ==================== STATIC METHODS ====================
 
-    /**
-     * Generate nomor nota otomatis
-     */
     public static function generateNoNota()
     {
         $prefix = 'INV';

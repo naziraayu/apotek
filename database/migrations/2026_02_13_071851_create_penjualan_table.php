@@ -22,6 +22,8 @@ return new class extends Migration
             $table->decimal('grand_total', 15, 2);
             $table->enum('status_pembayaran', ['lunas', 'belum_lunas'])->default('lunas');
             $table->enum('metode_pembayaran', ['tunai', 'transfer', 'kartu_kredit', 'e-wallet'])->default('tunai');
+            $table->string('bukti_pembayaran')->nullable();
+            $table->text('catatan')->nullable();
             $table->timestamps();
         });
     }
