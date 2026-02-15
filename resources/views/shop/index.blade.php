@@ -44,7 +44,7 @@
             <div class="row">
                 <!-- Sidebar Filter -->
                 <div class="col-lg-3 col-md-4 mb-4">
-                    <div class="card stretch stretch-full">
+                    <div class="card">
                         <div class="card-header">
                             <h5 class="card-title">Filter Obat</h5>
                         </div>
@@ -84,7 +84,7 @@
                     </div>
 
                     <!-- Info Card -->
-                    <div class="card stretch stretch-full mt-3">
+                    <div class="card mt-3">
                         <div class="card-body text-center">
                             <div class="avatar-text avatar-lg bg-soft-primary text-primary mb-3">
                                 <i class="feather-info"></i>

@@ -228,9 +228,22 @@
                                     <tbody>
                                         @forelse($obats as $index => $obat)
                                             @php
-                                                // PERBAIKAN: Hitung sisa hari dengan benar
+                                                // PERBAIKAN: Hitung sisa hari dengan benar menggunakan Carbon
                                                 if ($obat->tanggal_kadaluarsa) {
-                                                    $sisaHari = now()->diffInDays($obat->tanggal_kadaluarsa, false);
+                                                    $today = \Carbon\Carbon::today();
+                                                    $expiryDate = \Carbon\Carbon::parse($obat->tanggal_kadaluarsa)->startOfDay();
+                                                    
+                                                    // Hitung selisih hari (positif = belum kadaluarsa, negatif = sudah kadaluarsa)
+                                                    $sisaHari = $today->diffInDays($expiryDate, false);
+                                                    
+                                                    // Debug: uncomment untuk debugging
+                                                    // dd([
+                                                    //     'obat' => $obat->nama_obat,
+                                                    //     'today' => $today->format('Y-m-d'),
+                                                    //     'expiry' => $expiryDate->format('Y-m-d'),
+                                                    //     'sisa_hari' => $sisaHari,
+                                                    //     'is_expired' => $obat->isExpired()
+                                                    // ]);
                                                 } else {
                                                     $sisaHari = null;
                                                 }
@@ -266,7 +279,7 @@
                                                 <td>{{ $obats->firstItem() + $index }}</td>
                                                 <td>
                                                     <div class="d-flex align-items-center">
-                                                        <i class="feather-{{ $statusIcon }} me-2 {{ $sisaHari <= 30 ? 'text-danger' : ($sisaHari <= 60 ? 'text-warning' : 'text-info') }}"></i>
+                                                        <i class="feather-{{ $statusIcon }} me-2 {{ $obat->isExpired() ? 'text-dark' : ($sisaHari <= 30 ? 'text-danger' : ($sisaHari <= 60 ? 'text-warning' : 'text-info')) }}"></i>
                                                         <div>
                                                             <div class="fw-bold text-dark">{{ $obat->nama_obat }}</div>
                                                             <small class="fs-12 text-muted">{{ $obat->satuan }}</small>
@@ -293,8 +306,8 @@
                                                 <td>
                                                     @if($obat->tanggal_kadaluarsa)
                                                         <div>
-                                                            <div class="fw-bold">{{ $obat->tanggal_kadaluarsa->format('d M Y') }}</div>
-                                                            <small class="text-muted">{{ $obat->tanggal_kadaluarsa->format('l') }}</small>
+                                                            <div class="fw-bold">{{ \Carbon\Carbon::parse($obat->tanggal_kadaluarsa)->format('d M Y') }}</div>
+                                                            <small class="text-muted">{{ \Carbon\Carbon::parse($obat->tanggal_kadaluarsa)->format('l') }}</small>
                                                         </div>
                                                     @else
                                                         <span class="text-muted">-</span>
@@ -310,7 +323,7 @@
                                                     @else
                                                         <div>
                                                             <span class="badge {{ $statusBadge }}">
-                                                                {{ $sisaHari }} hari
+                                                                {{ $sisaHari }} hari lagi
                                                             </span>
                                                             @if($sisaHari <= 7)
                                                                 <div class="progress mt-1" style="height: 4px;">

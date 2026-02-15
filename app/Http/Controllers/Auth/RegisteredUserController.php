@@ -36,8 +36,8 @@ class RegisteredUserController extends Controller
         'name' => ['required', 'string', 'max:255'],
         'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
         'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        'no_telp' => ['required', 'string', 'max:20'], // Tambah validasi no_telp
-        'alamat' => ['nullable', 'string'], // Tambah validasi alamat
+        'no_telp' => ['nullable', 'string', 'max:20'], // ✅ Ubah jadi nullable
+        'alamat' => ['nullable', 'string'],
     ]);
 
     DB::beginTransaction();
@@ -54,11 +54,11 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'no_telp' => $request->no_telp,
-            'alamat' => $request->alamat,
-            'role_id' => $pelangganRole->id, // Auto-assign role Pelanggan
+            'no_telp' => $request->no_telp ?? '-', // ✅ Default value
+            'alamat' => $request->alamat ?? '-',   // ✅ Default value
+            'role_id' => $pelangganRole->id,
             'status' => 'aktif',
-            'email_verified_at' => now(), // Auto verify
+            'email_verified_at' => now(),
         ]);
 
         // Create Pelanggan (link ke user)

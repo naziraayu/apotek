@@ -16,7 +16,7 @@ class CartController extends Controller
         $cart = Session::get('cart', []);
         $total = $this->calculateTotal($cart);
 
-        return view('shop.cart', compact('cart', 'total'));
+        return view('cart.index', compact('cart', 'total'));
     }
 
     /**

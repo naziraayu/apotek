@@ -58,12 +58,12 @@
             <div class="row">
                 <!-- Main Product Info -->
                 <div class="col-lg-8">
-                    <div class="card stretch stretch-full">
+                    <div class="card">
                         <div class="card-body">
                             <div class="row">
                                 <!-- Product Image/Icon -->
                                 <div class="col-md-4 text-center mb-4 mb-md-0">
-                                    <div class="avatar-text avatar-xxl bg-soft-primary text-primary mb-3" style="width: 200px; height: 200px; font-size: 5rem; margin: 0 auto;">
+                                    <div class="avatar-text avatar-xxl bg-soft-primary text-primary mb-3" style="width: 150px; height: 150px; font-size: 4rem; margin: 0 auto;">
                                         <i class="feather-box"></i>
                                     </div>
                                     <span class="badge bg-soft-primary text-primary px-3 py-2">
@@ -162,7 +162,7 @@
                 <!-- Additional Info Sidebar -->
                 <div class="col-lg-4">
                     <!-- Product Specifications -->
-                    <div class="card stretch stretch-full mb-3">
+                    <div class="card mb-3">
                         <div class="card-header">
                             <h5 class="card-title">Spesifikasi Produk</h5>
                         </div>
@@ -195,7 +195,7 @@
                     </div>
 
                     <!-- Warning Notice -->
-                    <div class="card stretch stretch-full bg-soft-warning border-warning">
+                    <div class="card bg-soft-warning border-warning">
                         <div class="card-body">
                             <div class="d-flex align-items-start">
                                 <div class="avatar-text avatar-md bg-warning text-white me-3">
@@ -218,7 +218,7 @@
             @if($relatedObats->count() > 0)
                 <div class="row mt-4">
                     <div class="col-12">
-                        <div class="card stretch stretch-full">
+                        <div class="card">
                             <div class="card-header">
                                 <h5 class="card-title">Obat Terkait</h5>
                             </div>

@@ -185,7 +185,10 @@ class PenjualanController extends Controller
         $penjualan = Penjualan::with(['pelanggan', 'user', 'details.obat'])
             ->findOrFail($id);
 
-        return view('penjualan.show', compact('penjualan'));
+        // Tambahkan ini
+        $pelanggans = Pelanggan::orderBy('nama_pelanggan')->get();
+
+        return view('penjualan.show', compact('penjualan', 'pelanggans'));
     }
 
     /**

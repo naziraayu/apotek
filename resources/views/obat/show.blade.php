@@ -142,6 +142,17 @@
                             </div>
 
                             <!-- Informasi Batch & Kadaluarsa -->
+                            @php
+                                // PERBAIKAN: Hitung sisa hari dengan benar
+                                if ($obat->tanggal_kadaluarsa) {
+                                    $today = \Carbon\Carbon::today();
+                                    $expiryDate = \Carbon\Carbon::parse($obat->tanggal_kadaluarsa)->startOfDay();
+                                    $sisaHari = $today->diffInDays($expiryDate, false);
+                                } else {
+                                    $sisaHari = null;
+                                }
+                            @endphp
+                            
                             <div class="mb-0">
                                 <h6 class="fw-bold mb-3 text-primary">
                                     <i class="feather-calendar me-2"></i>Batch & Kadaluarsa
@@ -154,19 +165,25 @@
                                     <div class="col-md-6">
                                         <label class="text-muted small">Tanggal Kadaluarsa</label>
                                         <p class="fw-semibold mb-0">
-                                            {{ $obat->tanggal_kadaluarsa ? $obat->tanggal_kadaluarsa->format('d M Y') : '-' }}
+                                            {{ $obat->tanggal_kadaluarsa ? \Carbon\Carbon::parse($obat->tanggal_kadaluarsa)->format('d M Y') : '-' }}
                                         </p>
-                                        @if($obat->tanggal_kadaluarsa && $obat->days_until_expiry !== null)
-                                            <small class="text-muted">
-                                                {{ $obat->days_until_expiry }} hari lagi
-                                            </small>
+                                        @if($obat->tanggal_kadaluarsa && $sisaHari !== null)
+                                            @if($obat->isExpired())
+                                                <small class="text-danger fw-bold">
+                                                    <i class="feather-x-circle"></i> Lewat {{ abs($sisaHari) }} hari
+                                                </small>
+                                            @else
+                                                <small class="text-muted">
+                                                    <i class="feather-clock"></i> {{ $sisaHari }} hari lagi
+                                                </small>
+                                            @endif
                                         @endif
                                     </div>
-                                    @if($obat->isNearExpired())
+                                    @if($obat->isNearExpired() && !$obat->isExpired())
                                         <div class="col-12">
                                             <div class="alert alert-info mb-0">
                                                 <i class="feather-info me-2"></i>
-                                                Obat akan kadaluarsa dalam {{ $obat->days_until_expiry }} hari!
+                                                Obat akan kadaluarsa dalam {{ $sisaHari }} hari!
                                             </div>
                                         </div>
                                     @endif
@@ -174,7 +191,7 @@
                                         <div class="col-12">
                                             <div class="alert alert-dark mb-0">
                                                 <i class="feather-x-circle me-2"></i>
-                                                Obat sudah kadaluarsa! Tidak boleh dijual.
+                                                Obat sudah kadaluarsa {{ abs($sisaHari) }} hari yang lalu! Tidak boleh dijual.
                                             </div>
                                         </div>
                                     @endif
@@ -230,19 +247,25 @@
                                         @if($obat->isExpired())
                                             <span class="badge bg-dark">Kadaluarsa</span>
                                         @elseif($obat->isNearExpired())
-                                            <span class="badge bg-info">{{ $obat->days_until_expiry }} hari</span>
+                                            <span class="badge bg-info">{{ $sisaHari }} hari</span>
                                         @else
                                             <span class="badge bg-success">Aman</span>
                                         @endif
                                     </div>
-                                    @if(!$obat->isExpired())
+                                    @if(!$obat->isExpired() && $sisaHari !== null)
                                         @php
-                                            $daysPercentage = min(($obat->days_until_expiry / 365) * 100, 100);
-                                            $expiryColorClass = $obat->isNearExpired() ? 'bg-info' : 'bg-success';
+                                            $daysPercentage = min(($sisaHari / 365) * 100, 100);
+                                            $expiryColorClass = $sisaHari <= 90 ? 'bg-info' : 'bg-success';
                                         @endphp
                                         <div class="progress" style="height: 8px;">
                                             <div class="progress-bar {{ $expiryColorClass }}" style="width: {{ $daysPercentage }}%"></div>
                                         </div>
+                                        <small class="text-muted">{{ $sisaHari }} hari lagi / 365 hari</small>
+                                    @elseif($obat->isExpired())
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-dark" style="width: 100%"></div>
+                                        </div>
+                                        <small class="text-danger">Sudah lewat {{ abs($sisaHari) }} hari</small>
                                     @endif
                                 </div>
                             @endif

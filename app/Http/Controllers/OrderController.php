@@ -36,7 +36,7 @@ class OrderController extends Controller
 
         $total = $this->calculateTotal($cart);
 
-        return view('shop.checkout', compact('cart', 'total'));
+        return view('orders.checkout', compact('cart', 'total'));
     }
 
     /**
@@ -139,7 +139,7 @@ class OrderController extends Controller
 
         $orders = $query->latest('tanggal_penjualan')->paginate(10);
 
-        return view('shop.orders.index', compact('orders'));
+        return view('orders.index', compact('orders'));
     }
 
     /**
@@ -151,7 +151,7 @@ class OrderController extends Controller
             ->with('details.obat')
             ->findOrFail($id);
 
-        return view('shop.orders.show', compact('order'));
+        return view('orders.show', compact('order'));
     }
 
     /**

@@ -7,186 +7,248 @@
         <div class="page-header">
             <div class="page-header-left d-flex align-items-center">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">Transaksi Penjualan Baru</h5>
+                    <h5 class="m-b-10">Detail Transaksi Penjualan</h5>
                 </div>
                 <ul class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('penjualan.index') }}">Penjualan</a></li>
-                    <li class="breadcrumb-item active">Tambah</li>
+                    <li class="breadcrumb-item active">Detail</li>
                 </ul>
             </div>
             <div class="page-header-right ms-auto">
-                <a href="{{ route('penjualan.index') }}" class="btn btn-light">
-                    <i class="feather-arrow-left me-2"></i>Kembali
-                </a>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('penjualan.cetak', $penjualan->id) }}" class="btn btn-primary" target="_blank">
+                        <i class="feather-printer me-2"></i>Cetak Nota
+                    </a>
+                    @if($penjualan->status_pembayaran === 'belum_lunas')
+                        <a href="{{ route('penjualan.edit', $penjualan->id) }}" class="btn btn-warning">
+                            <i class="feather-edit me-2"></i>Edit
+                        </a>
+                    @endif
+                    <a href="{{ route('penjualan.index') }}" class="btn btn-light">
+                        <i class="feather-arrow-left me-2"></i>Kembali
+                    </a>
+                </div>
             </div>
         </div>
         <!-- [ page-header ] end -->
 
         <!-- [ Main Content ] start -->
         <div class="main-content">
-            <form action="{{ route('penjualan.store') }}" method="POST" id="formPenjualan">
-                @csrf
-                <div class="row">
-                    <!-- Left Side - Form Input -->
-                    <div class="col-lg-8">
-                        <div class="card stretch stretch-full">
-                            <div class="card-header">
-                                <h5 class="card-title">Detail Transaksi</h5>
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong>Berhasil!</strong> {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Error!</strong> {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
+
+            <div class="row">
+                <!-- Left Side - Detail Transaksi -->
+                <div class="col-lg-8">
+                    <!-- Informasi Transaksi -->
+                    <div class="card stretch stretch-full mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title">Informasi Transaksi</h5>
+                            <div class="card-header-action">
+                                {!! $penjualan->status_pembayaran_badge !!}
                             </div>
-                            <div class="card-body">
-                                @if(session('error'))
-                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                        <strong>Error!</strong> {{ session('error') }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                    </div>
-                                @endif
-
-                                <!-- Informasi Transaksi -->
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label">No Nota <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" value="{{ $noNota }}" readonly>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label">Tanggal <span class="text-danger">*</span></label>
-                                            <input type="date" name="tanggal_penjualan" class="form-control @error('tanggal_penjualan') is-invalid @enderror" value="{{ old('tanggal_penjualan', date('Y-m-d')) }}" required>
-                                            @error('tanggal_penjualan')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-borderless table-sm">
+                                        <tr>
+                                            <td width="40%" class="text-muted">No Nota</td>
+                                            <td width="5%">:</td>
+                                            <td class="fw-bold text-primary">{{ $penjualan->no_nota }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted">Tanggal</td>
+                                            <td>:</td>
+                                            <td>{{ $penjualan->tanggal_penjualan->format('d F Y H:i') }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted">Kasir</td>
+                                            <td>:</td>
+                                            <td>{{ $penjualan->user->name ?? '-' }}</td>
+                                        </tr>
+                                    </table>
                                 </div>
-
-                                <!-- Pelanggan -->
-                                <div class="mb-3">
-                                    <label class="form-label">Pelanggan</label>
-                                    <select name="pelanggan_id" class="form-select select2" id="pelangganSelect">
-                                        <option value="">-- Pilih Pelanggan (Opsional) --</option>
-                                        @foreach($pelanggans as $pelanggan)
-                                            <option value="{{ $pelanggan->id }}" {{ old('pelanggan_id') == $pelanggan->id ? 'selected' : '' }}>
-                                                {{ $pelanggan->nama_pelanggan }} - {{ $pelanggan->no_telepon }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <small class="text-muted">Kosongkan jika pelanggan umum</small>
-                                </div>
-
-                                <hr class="my-4">
-
-                                <!-- Item Obat -->
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <label class="form-label mb-0">Daftar Obat <span class="text-danger">*</span></label>
-                                        <button type="button" class="btn btn-sm btn-primary" id="btnTambahItem">
-                                            <i class="feather-plus me-1"></i>Tambah Obat
-                                        </button>
-                                    </div>
-
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered" id="tableObat">
-                                            <thead class="bg-light">
-                                                <tr>
-                                                    <th width="35%">Obat</th>
-                                                    <th width="15%">Harga</th>
-                                                    <th width="15%">Stok</th>
-                                                    <th width="15%">Jumlah</th>
-                                                    <th width="15%">Subtotal</th>
-                                                    <th width="5%">Aksi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="itemContainer">
-                                                <!-- Items akan ditambahkan di sini -->
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    @error('obat_id')
-                                        <div class="text-danger small mt-1">{{ $message }}</div>
-                                    @enderror
+                                <div class="col-md-6">
+                                    <table class="table table-borderless table-sm">
+                                        <tr>
+                                            <td width="40%" class="text-muted">Pelanggan</td>
+                                            <td width="5%">:</td>
+                                            <td>
+                                                @if($penjualan->pelanggan)
+                                                    <div class="fw-bold">{{ $penjualan->pelanggan->nama_pelanggan }}</div>
+                                                    <small class="text-muted">{{ $penjualan->pelanggan->no_telepon }}</small>
+                                                @else
+                                                    <span class="badge bg-soft-secondary text-secondary">Umum</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted">Metode Pembayaran</td>
+                                            <td>:</td>
+                                            <td>{!! $penjualan->metode_pembayaran_badge !!}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted">Status</td>
+                                            <td>:</td>
+                                            <td>{!! $penjualan->status_pembayaran_badge !!}</td>
+                                        </tr>
+                                    </table>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Right Side - Summary -->
-                    <div class="col-lg-4">
-                        <div class="card stretch stretch-full">
-                            <div class="card-header">
-                                <h5 class="card-title">Ringkasan Pembayaran</h5>
+                    <!-- Daftar Obat -->
+                    <div class="card stretch stretch-full">
+                        <div class="card-header">
+                            <h5 class="card-title">Daftar Obat</h5>
+                            <div class="card-header-action">
+                                <span class="badge bg-soft-info text-info">
+                                    {{ $penjualan->details->count() }} Item
+                                </span>
                             </div>
-                            <div class="card-body">
-                                <!-- Total Harga -->
-                                <div class="d-flex justify-content-between mb-3">
-                                    <span class="text-muted">Total Harga:</span>
-                                    <span class="fw-bold" id="displayTotalHarga">Rp 0</span>
-                                </div>
-
-                                <!-- Diskon -->
-                                <div class="mb-3">
-                                    <label class="form-label">Diskon</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">Rp</span>
-                                        <input type="number" name="diskon" class="form-control" id="inputDiskon" value="{{ old('diskon', 0) }}" min="0" step="1000">
-                                    </div>
-                                </div>
-
-                                <hr>
-
-                                <!-- Grand Total -->
-                                <div class="d-flex justify-content-between mb-4">
-                                    <h5 class="mb-0">Grand Total:</h5>
-                                    <h5 class="mb-0 text-primary" id="displayGrandTotal">Rp 0</h5>
-                                </div>
-
-                                <hr>
-
-                                <!-- Metode Pembayaran -->
-                                <div class="mb-3">
-                                    <label class="form-label">Metode Pembayaran <span class="text-danger">*</span></label>
-                                    <select name="metode_pembayaran" class="form-select @error('metode_pembayaran') is-invalid @enderror" required>
-                                        <option value="">-- Pilih Metode --</option>
-                                        <option value="tunai" {{ old('metode_pembayaran') == 'tunai' ? 'selected' : '' }}>Tunai</option>
-                                        <option value="transfer" {{ old('metode_pembayaran') == 'transfer' ? 'selected' : '' }}>Transfer</option>
-                                        <option value="kartu_kredit" {{ old('metode_pembayaran') == 'kartu_kredit' ? 'selected' : '' }}>Kartu Kredit</option>
-                                        <option value="e-wallet" {{ old('metode_pembayaran') == 'e-wallet' ? 'selected' : '' }}>E-Wallet</option>
-                                    </select>
-                                    @error('metode_pembayaran')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <!-- Status Pembayaran -->
-                                <div class="mb-3">
-                                    <label class="form-label">Status Pembayaran <span class="text-danger">*</span></label>
-                                    <select name="status_pembayaran" class="form-select @error('status_pembayaran') is-invalid @enderror" required>
-                                        <option value="">-- Pilih Status --</option>
-                                        <option value="lunas" {{ old('status_pembayaran') == 'lunas' ? 'selected' : '' }}>Lunas</option>
-                                        <option value="belum_lunas" {{ old('status_pembayaran') == 'belum_lunas' ? 'selected' : '' }}>Belum Lunas</option>
-                                    </select>
-                                    @error('status_pembayaran')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <hr>
-
-                                <!-- Action Buttons -->
-                                <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-primary btn-lg">
-                                        <i class="feather-save me-2"></i>Simpan Transaksi
-                                    </button>
-                                    <a href="{{ route('penjualan.index') }}" class="btn btn-light">
-                                        <i class="feather-x me-2"></i>Batal
-                                    </a>
-                                </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th width="5%">No</th>
+                                            <th width="35%">Nama Obat</th>
+                                            <th width="15%" class="text-end">Harga</th>
+                                            <th width="10%" class="text-center">Jumlah</th>
+                                            <th width="15%" class="text-end">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($penjualan->details as $index => $detail)
+                                            <tr>
+                                                <td>{{ $index + 1 }}</td>
+                                                <td>
+                                                    <div class="fw-bold">{{ $detail->obat->nama_obat }}</div>
+                                                    <small class="text-muted">{{ $detail->obat->kode_obat }}</small>
+                                                </td>
+                                                <td class="text-end">Rp {{ number_format($detail->harga_satuan, 0, ',', '.') }}</td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-soft-primary text-primary">
+                                                        {{ $detail->jumlah }} {{ $detail->obat->satuan }}
+                                                    </span>
+                                                </td>
+                                                <td class="text-end fw-bold">Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
-            </form>
+
+                <!-- Right Side - Summary -->
+                <div class="col-lg-4">
+                    <!-- Ringkasan Pembayaran -->
+                    <div class="card stretch stretch-full">
+                        <div class="card-header">
+                            <h5 class="card-title">Ringkasan Pembayaran</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Total Harga -->
+                            <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                                <span class="text-muted">Total Harga</span>
+                                <span class="fw-bold">Rp {{ number_format($penjualan->total_harga, 0, ',', '.') }}</span>
+                            </div>
+
+                            <!-- Diskon -->
+                            @if($penjualan->diskon > 0)
+                                <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                                    <span class="text-muted">Diskon</span>
+                                    <span class="text-success fw-bold">- Rp {{ number_format($penjualan->diskon, 0, ',', '.') }}</span>
+                                </div>
+                            @endif
+
+                            <!-- Grand Total -->
+                            <div class="d-flex justify-content-between mb-4">
+                                <h5 class="mb-0">Grand Total</h5>
+                                <h4 class="mb-0 text-primary">Rp {{ number_format($penjualan->grand_total, 0, ',', '.') }}</h4>
+                            </div>
+
+                            <hr>
+
+                            <!-- Status Badge -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-muted">Status Pembayaran</span>
+                                    {!! $penjualan->status_pembayaran_badge !!}
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted">Metode Pembayaran</span>
+                                    {!! $penjualan->metode_pembayaran_badge !!}
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <!-- Action Buttons -->
+                            <div class="d-grid gap-2">
+                                <a href="{{ route('penjualan.cetak', $penjualan->id) }}" class="btn btn-primary" target="_blank">
+                                    <i class="feather-printer me-2"></i>Cetak Nota
+                                </a>
+                                @if($penjualan->status_pembayaran === 'belum_lunas')
+                                    <a href="{{ route('penjualan.edit', $penjualan->id) }}" class="btn btn-warning">
+                                        <i class="feather-edit me-2"></i>Edit Transaksi
+                                    </a>
+                                    <form action="{{ route('penjualan.destroy', $penjualan->id) }}" method="POST" id="deleteForm">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="feather-trash-2 me-2"></i>Hapus Transaksi
+                                        </button>
+                                    </form>
+                                @endif
+                                <a href="{{ route('penjualan.index') }}" class="btn btn-light">
+                                    <i class="feather-arrow-left me-2"></i>Kembali ke Daftar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Informasi Tambahan -->
+                    <div class="card stretch stretch-full mt-3">
+                        <div class="card-header">
+                            <h5 class="card-title">Informasi Tambahan</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <small class="text-muted d-block mb-1">Dibuat Pada</small>
+                                <div class="fw-bold">{{ $penjualan->created_at->format('d F Y H:i') }}</div>
+                            </div>
+                            @if($penjualan->updated_at != $penjualan->created_at)
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-1">Terakhir Diubah</small>
+                                    <div class="fw-bold">{{ $penjualan->updated_at->format('d F Y H:i') }}</div>
+                                </div>
+                            @endif
+                            <div>
+                                <small class="text-muted d-block mb-1">Total Item</small>
+                                <div class="fw-bold">{{ $penjualan->details->sum('jumlah') }} Item</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <!-- [ Main Content ] end -->
     </div>
@@ -194,185 +256,43 @@
 @endsection
 
 @push('styles')
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 <style>
-.table-bordered th,
-.table-bordered td {
-    vertical-align: middle;
+.table-borderless td {
+    padding: 0.5rem 0.75rem;
 }
 
-.select2-container {
-    width: 100% !important;
+.card-header-action .badge {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
 }
 
-.item-row {
-    animation: fadeIn 0.3s;
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.border-bottom {
+    border-color: #e9ecef !important;
 }
 </style>
 @endpush
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 $(document).ready(function() {
-    let itemCount = 0;
-    const obatData = @json($obats);
-
-    // Initialize Select2
-    $('.select2').select2({
-        theme: 'bootstrap-5',
-        placeholder: '-- Pilih --',
-        allowClear: true
-    });
-
-    // Tambah Item
-    $('#btnTambahItem').click(function() {
-        addItemRow();
-    });
-
-    // Function untuk menambah baris item
-    function addItemRow() {
-        itemCount++;
+    // Delete Confirmation
+    $('#deleteForm').on('submit', function(e) {
+        e.preventDefault();
         
-        const row = `
-            <tr class="item-row" id="row-${itemCount}">
-                <td>
-                    <select name="obat_id[]" class="form-select form-select-sm select-obat" data-row="${itemCount}" required>
-                        <option value="">-- Pilih Obat --</option>
-                        ${obatData.map(obat => `
-                            <option value="${obat.id}" 
-                                data-harga="${obat.harga_jual}" 
-                                data-stok="${obat.stok}"
-                                data-satuan="${obat.satuan}">
-                                ${obat.nama_obat} (${obat.kode_obat})
-                            </option>
-                        `).join('')}
-                    </select>
-                </td>
-                <td>
-                    <input type="number" name="harga_satuan[]" class="form-control form-control-sm harga-input" id="harga-${itemCount}" readonly required>
-                </td>
-                <td>
-                    <div class="d-flex align-items-center">
-                        <span class="badge bg-soft-info text-info" id="stok-${itemCount}">0</span>
-                        <small class="ms-1 text-muted" id="satuan-${itemCount}"></small>
-                    </div>
-                </td>
-                <td>
-                    <input type="number" name="jumlah[]" class="form-control form-control-sm jumlah-input" id="jumlah-${itemCount}" min="1" value="1" required data-row="${itemCount}">
-                </td>
-                <td>
-                    <input type="text" class="form-control form-control-sm subtotal-display" id="subtotal-${itemCount}" readonly>
-                </td>
-                <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-danger btn-remove" data-row="${itemCount}">
-                        <i class="feather-trash-2"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
-        
-        $('#itemContainer').append(row);
-    }
-
-    // Event: Pilih Obat
-    $(document).on('change', '.select-obat', function() {
-        const row = $(this).data('row');
-        const selected = $(this).find(':selected');
-        const harga = selected.data('harga');
-        const stok = selected.data('stok');
-        const satuan = selected.data('satuan');
-
-        $(`#harga-${row}`).val(harga);
-        $(`#stok-${row}`).text(stok);
-        $(`#satuan-${row}`).text(satuan);
-        $(`#jumlah-${row}`).attr('max', stok);
-
-        calculateSubtotal(row);
-    });
-
-    // Event: Ubah Jumlah
-    $(document).on('input', '.jumlah-input', function() {
-        const row = $(this).data('row');
-        const max = parseInt($(this).attr('max'));
-        const value = parseInt($(this).val());
-
-        if (value > max) {
-            alert(`Stok tidak mencukupi! Maksimal: ${max}`);
-            $(this).val(max);
-        }
-
-        calculateSubtotal(row);
-    });
-
-    // Event: Ubah Diskon
-    $('#inputDiskon').on('input', function() {
-        calculateGrandTotal();
-    });
-
-    // Event: Hapus Item
-    $(document).on('click', '.btn-remove', function() {
-        const row = $(this).data('row');
-        $(`#row-${row}`).remove();
-        calculateGrandTotal();
-    });
-
-    // Calculate Subtotal per item
-    function calculateSubtotal(row) {
-        const harga = parseFloat($(`#harga-${row}`).val()) || 0;
-        const jumlah = parseInt($(`#jumlah-${row}`).val()) || 0;
-        const subtotal = harga * jumlah;
-
-        $(`#subtotal-${row}`).val(formatRupiah(subtotal));
-        calculateGrandTotal();
-    }
-
-    // Calculate Grand Total
-    function calculateGrandTotal() {
-        let totalHarga = 0;
-
-        $('.jumlah-input').each(function() {
-            const row = $(this).data('row');
-            const harga = parseFloat($(`#harga-${row}`).val()) || 0;
-            const jumlah = parseInt($(this).val()) || 0;
-            totalHarga += (harga * jumlah);
-        });
-
-        const diskon = parseFloat($('#inputDiskon').val()) || 0;
-        const grandTotal = totalHarga - diskon;
-
-        $('#displayTotalHarga').text(formatRupiah(totalHarga));
-        $('#displayGrandTotal').text(formatRupiah(grandTotal));
-    }
-
-    // Format Rupiah
-    function formatRupiah(angka) {
-        return 'Rp ' + angka.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    }
-
-    // Validasi Form
-    $('#formPenjualan').submit(function(e) {
-        if ($('#itemContainer tr').length === 0) {
-            e.preventDefault();
-            alert('Minimal harus ada 1 obat!');
-            return false;
+        if (confirm('Yakin ingin menghapus transaksi ini? Data yang sudah dihapus tidak dapat dikembalikan.')) {
+            this.submit();
         }
     });
 
-    // Auto add 1 row on load
-    addItemRow();
+    // Initialize Tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
 });
 </script>
 @endpush
