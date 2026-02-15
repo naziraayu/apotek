@@ -11,6 +11,10 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
+// ⬇️⬇️⬇️ TAMBAHKAN IMPORT INI ⬇️⬇️⬇️
+use App\Http\Controllers\ShopController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -22,6 +26,33 @@ Route::get('/', function () {
 // --------------------
 Route::middleware(['auth'])->group(function () {
 
+    // ========================================
+    // 🛒 SHOP ROUTES (UNTUK PELANGGAN)
+    // ========================================
+    Route::prefix('shop')->name('shop.')->group(function () {
+        // Katalog Obat
+        Route::get('/', [ShopController::class, 'index'])->name('index');
+        Route::get('/obat/{id}', [ShopController::class, 'show'])->name('show');
+        
+        // Keranjang Belanja
+        Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+        Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+        Route::put('/cart/{id}', [CartController::class, 'update'])->name('cart.update');
+        Route::delete('/cart/{id}', [CartController::class, 'remove'])->name('cart.remove');
+        Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
+        
+        // Checkout & Order
+        Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout');
+        Route::post('/order', [OrderController::class, 'store'])->name('order.store');
+        
+        // Riwayat Pesanan Pelanggan
+        Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
+    });
+
+    // ========================================
+    // 📊 DASHBOARD (UNTUK ADMIN/APOTEKER)
+    // ========================================
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // --------------------
@@ -304,16 +335,13 @@ Route::middleware(['auth'])->group(function () {
     // Profile Routes
     // --------------------
     Route::prefix('profile')->name('profile.')->group(function () {
-        Route::get('/show', [ProfileController::class, 'show'])->name('show');           // /profile (VIEW)
-        Route::get('/edit', [ProfileController::class, 'edit'])->name('edit');       // /profile/edit (EDIT)
-        Route::patch('/', [ProfileController::class, 'update'])->name('update');     // /profile (UPDATE)
-        Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');  // /profile (DELETE)
-        Route::put('/photo', [ProfileController::class, 'updatePhoto'])->name('update.photo'); // /profile/photo (UPLOAD PHOTO)
+        Route::get('/show', [ProfileController::class, 'show'])->name('show');
+        Route::get('/edit', [ProfileController::class, 'edit'])->name('edit');
+        Route::patch('/', [ProfileController::class, 'update'])->name('update');
+        Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
+        Route::put('/photo', [ProfileController::class, 'updatePhoto'])->name('update.photo');
     });
 });
-// Route::get('/dashboard', function () {
-//     return view('dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

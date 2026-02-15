@@ -25,10 +25,15 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
-
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $user = Auth::user();
+
+    if ($user && $user->role->nama_role === 'Pelanggan') {
+        return redirect()->route('shop.index');
+    }
+        
+        return redirect()->intended(route('dashboard', absolute: false)); // Admin/Apoteker ke dashboard
     }
 
     /**

@@ -131,9 +131,9 @@ class User extends Authenticatable
     /**
      * Check apakah user adalah kasir
      */
-    public function isKasir()
+    public function isPelanggan()
     {
-        return $this->role?->nama_role === 'Kasir';
+        return $this->role?->nama_role === 'Pelanggan';
     }
 
     /**
