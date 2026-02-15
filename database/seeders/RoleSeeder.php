@@ -21,8 +21,8 @@ class RoleSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'nama_role' => 'Kasir',
-                'deskripsi' => 'Kasir yang melayani transaksi penjualan',
+                'nama_role' => 'Pelanggan',
+                'deskripsi' => 'Customer yang bisa membeli obat',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

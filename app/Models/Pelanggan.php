@@ -33,6 +33,11 @@ class Pelanggan extends Model
     {
         return $this->hasMany(Penjualan::class, 'pelanggan_id');
     }
+    // Tambah relasi
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     // ==================== ACCESSOR ====================
 

@@ -32,9 +32,9 @@ class UserSeeder extends Seeder
         );
 
         User::updateOrCreate(
-            ['email' => 'kasir2@apotek.com'],
+            ['email' => 'pelanggan1@apotek.com'],
             [
-                'role_id' => 2, // Kasir
+                'role_id' => 2, // pelanggan
                 'name' => 'Andi Wijaya',
                 'password' => Hash::make('password123'),
                 'no_telp' => '081234567893',

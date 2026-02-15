@@ -12,12 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pelanggan', function (Blueprint $table) {
-             $table->id();
+            $table->id();
             $table->string('nama_pelanggan', 100);
             $table->text('alamat')->nullable();
             $table->string('no_telp', 15)->nullable();
             $table->string('email', 100)->nullable();
             $table->date('tanggal_daftar')->default(now());
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }
